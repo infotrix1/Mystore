@@ -13,17 +13,21 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, logout, hasRole } = useAuth();
+  const { user, isAuthenticated, logout, hasRole, loading } = useAuth();
   const { totalItems } = useCart();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout(); // Calls Inertia logout route
+  console.log(user);
+
+  const handleLogout = async () => {
+    await logout();
     setIsUserMenuOpen(false);
     router.visit('/');
   };
+
+  if (loading) return null; // Optionally show a spinner or header skeleton
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -172,7 +176,7 @@ const Header: React.FC = () => {
                 About
               </Link>
 
-              {/* Mobile search */}
+              {/* Mobile Search */}
               <div className="pt-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />

@@ -1,45 +1,56 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { User, AuthState } from '../types';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import axios from 'axios';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role?: string;
+}
+
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+}
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Required for session/cookie-based auth
+  axios.defaults.withCredentials = true;
+
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get('/user');
+      setUser(response.data);
+      setIsAuthenticated(true);
+    } catch {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Replace with real API request
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        return false;
-      }
-
-      const data = await response.json();
-
-      const user: User = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-      };
-
-      setAuthState({ user, isAuthenticated: true });
+      await axios.post('/login', { email, password });
+      await fetchUser();
       return true;
     } catch (error) {
       console.error('Login failed:', error);
@@ -49,29 +60,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      // Replace with real API request
-      const response = await fetch('/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      if (!response.ok) {
-        return false;
-      }
-
-      const data = await response.json();
-
-      const user: User = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-      };
-
-      setAuthState({ user, isAuthenticated: true });
+      await axios.post('/register', { name, email, password });
+      await fetchUser();
       return true;
     } catch (error) {
       console.error('Registration failed:', error);
@@ -79,18 +69,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logout = () => {
-    // Optionally notify backend
-    fetch('/logout', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(console.error);
-
-    setAuthState({ user: null, isAuthenticated: false });
+  const logout = async () => {
+    try {
+      await axios.post('/logout');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, login, register, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
