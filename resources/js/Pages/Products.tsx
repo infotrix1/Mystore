@@ -1,27 +1,32 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { Filter, Grid, List, Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { mockProducts } from '../data/mockData';
+import { Product } from '../types';
 
 const Products: React.FC = () => {
+  const { products } = usePage().props as {
+    products: Product[];
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
 
-  const categories = ['all', ...Array.from(new Set(mockProducts.map(p => p.category)))];
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = mockProducts.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    let filtered = products.filter(product => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase());
+
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-      
+
       return matchesSearch && matchesCategory;
     });
 
-    // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
@@ -37,7 +42,7 @@ const Products: React.FC = () => {
     });
 
     return filtered;
-  }, [searchTerm, selectedCategory, sortBy]);
+  }, [products, searchTerm, selectedCategory, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -47,7 +52,7 @@ const Products: React.FC = () => {
         <p className="text-gray-600">Discover our complete collection of premium products</p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
@@ -89,7 +94,7 @@ const Products: React.FC = () => {
             <option value="rating">Highest Rated</option>
           </select>
 
-          {/* View Mode */}
+          {/* View Mode Toggle */}
           <div className="flex border border-gray-300 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
@@ -107,20 +112,22 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* Results */}
+      {/* Product Count */}
       <div className="mb-6">
         <p className="text-gray-600">
-          Showing {filteredAndSortedProducts.length} of {mockProducts.length} products
+          Showing {filteredAndSortedProducts.length} of {products.length} products
         </p>
       </div>
 
-      {/* Products Grid */}
+      {/* Product Grid/List */}
       {filteredAndSortedProducts.length > 0 ? (
-        <div className={`grid gap-6 ${
-          viewMode === 'grid' 
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-            : 'grid-cols-1'
-        }`}>
+        <div
+          className={`grid gap-6 ${
+            viewMode === 'grid'
+              ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              : 'grid-cols-1'
+          }`}
+        >
           {filteredAndSortedProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

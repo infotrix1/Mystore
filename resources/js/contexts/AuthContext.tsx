@@ -9,12 +9,6 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo
-const mockUsers: User[] = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'user' },
-  { id: '2', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-];
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -22,32 +16,76 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication
-    const user = mockUsers.find(u => u.email === email);
-    if (user && password) {
+    try {
+      // Replace with real API request
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+
+      const user: User = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      };
+
       setAuthState({ user, isAuthenticated: true });
       return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
     }
-    return false;
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Mock registration
-    if (name && email && password) {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name,
-        email,
-        role: 'user',
+    try {
+      // Replace with real API request
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+
+      const user: User = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
       };
-      mockUsers.push(newUser);
-      setAuthState({ user: newUser, isAuthenticated: true });
+
+      setAuthState({ user, isAuthenticated: true });
       return true;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
+    // Optionally notify backend
+    fetch('/logout', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(console.error);
+
     setAuthState({ user: null, isAuthenticated: false });
   };
 

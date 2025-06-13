@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@inertiajs/react';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -36,22 +36,22 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/products" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/products" className="text-gray-300 hover:text-white transition-colors">
                   Products
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/categories" className="text-gray-300 hover:text-white transition-colors">
                   Categories
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
@@ -63,22 +63,22 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/help" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/help" className="text-gray-300 hover:text-white transition-colors">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link to="/shipping" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/shipping" className="text-gray-300 hover:text-white transition-colors">
                   Shipping Info
                 </Link>
               </li>
               <li>
-                <Link to="/returns" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/returns" className="text-gray-300 hover:text-white transition-colors">
                   Returns
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/privacy" className="text-gray-300 hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>

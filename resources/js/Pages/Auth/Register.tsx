@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, router } from '@inertiajs/react';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 
 const Register: React.FC = () => {
-  const { register } = useAuth();
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,46 +12,48 @@ const Register: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
-      setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
-      setIsLoading(false);
       return;
     }
 
-    try {
-      const success = await register(formData.name, formData.email, formData.password);
-      if (success) {
-        navigate('/');
-      } else {
-        setError('Registration failed. Please try again.');
-      }
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(true);
+
+    router.post('/register', {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      password_confirmation: formData.confirmPassword,
+    }, {
+      onError: (errors) => {
+        // Customize which error messages you want to show
+        setError(errors.name || errors.email || errors.password || 'Registration failed. Please try again.');
+        setIsLoading(false);
+      },
+      onSuccess: () => {
+        setIsLoading(false);
+      },
+    });
   };
 
   return (
@@ -176,11 +175,11 @@ const Register: React.FC = () => {
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
                 I agree to the{' '}
-                <Link to="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
                   Privacy Policy
                 </Link>
               </label>
@@ -205,7 +204,7 @@ const Register: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
                 Sign in here
               </Link>
             </p>

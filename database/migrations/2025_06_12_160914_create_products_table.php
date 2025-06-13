@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->string('category');
+            $table->string('image');
             $table->integer('stock')->default(0);
             $table->float('rating')->default(0);
             $table->timestamps();

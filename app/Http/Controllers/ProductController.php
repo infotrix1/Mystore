@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Inertia\Inertia;
 use App\Services\ProductService;
 
 class ProductController extends Controller
@@ -15,13 +16,18 @@ class ProductController extends Controller
     public function index()
     {
         $products = $this->service->getAllProducts();
-        return Inertia::render('Products/Index', compact('products'));
+        return Inertia::render('Products', compact('products'));
     }
 
     public function show($id)
     {
         $product = $this->service->getProductById($id);
-        return Inertia::render('Products/Show', compact('product'));
+        return Inertia::render('ProductDetail', compact('product'));
+    }
+
+    public function cart()
+    {
+        return Inertia::render('Cart');
     }
 
     public function store(ProductRequest $request)

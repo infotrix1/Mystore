@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { Link } from '@inertiajs/react'; // ✅ Inertia Link
 
 const Cart: React.FC = () => {
   const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
@@ -18,7 +18,7 @@ const Cart: React.FC = () => {
             Looks like you haven't added anything to your cart yet.
           </p>
           <Link
-            to="/products"
+            href="/products"
             className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
           >
             Continue Shopping
@@ -50,13 +50,13 @@ const Cart: React.FC = () => {
                   alt={item.product.name}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
-                
+
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {item.product.name}
                   </h3>
                   <p className="text-gray-600 mb-4">{item.product.description}</p>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <button
@@ -75,10 +75,10 @@ const Cart: React.FC = () => {
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    
+
                     <div className="flex items-center space-x-4">
                       <span className="text-2xl font-bold text-gray-900">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ₦{(item.product.price * item.quantity).toFixed(2)}
                       </span>
                       <button
                         onClick={() => removeFromCart(item.product.id)}
@@ -98,11 +98,11 @@ const Cart: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
-            
+
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">${totalPrice.toFixed(2)}</span>
+                <span className="font-semibold">₦{totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Shipping</span>
@@ -110,26 +110,26 @@ const Cart: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tax</span>
-                <span className="font-semibold">${(totalPrice * 0.08).toFixed(2)}</span>
+                <span className="font-semibold">₦{(totalPrice * 0.08).toFixed(2)}</span>
               </div>
               <hr />
               <div className="flex justify-between text-lg">
                 <span className="font-semibold">Total</span>
                 <span className="font-bold text-blue-600">
-                  ${(totalPrice * 1.08).toFixed(2)}
+                  ₦{(totalPrice * 1.08).toFixed(2)}
                 </span>
               </div>
             </div>
-            
+
             <Link
-              to="/checkout"
+              href="/checkout"
               className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl hover:bg-blue-700 transition-colors font-semibold text-center block"
             >
               Proceed to Checkout
             </Link>
-            
+
             <Link
-              to="/products"
+              href="/products"
               className="w-full text-center text-blue-600 hover:text-blue-700 py-3 font-medium inline-block"
             >
               Continue Shopping
