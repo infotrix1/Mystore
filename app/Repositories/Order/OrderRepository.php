@@ -13,6 +13,16 @@ class OrderRepository implements OrderRepositoryInterface
         $this->model = $order;
     }
 
+    public function all()
+    {
+        return $this->model::with('products')->get();
+    }
+
+    public function getOrders()
+    {
+        return $this->model::with('products')->where('user_id', 1)->get();
+    }
+
     public function find($id)
     {
         return $this->model::with('products')->findOrFail($id);

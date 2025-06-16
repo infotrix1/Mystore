@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Services\ProductService;
+use App\Models\Product;
+use App\Models\Order;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -30,6 +33,7 @@ class ProductController extends Controller
         return Inertia::render('Cart');
     }
 
+
     public function store(ProductRequest $request)
     {
         $this->service->createProduct($request->validated());
@@ -46,5 +50,26 @@ class ProductController extends Controller
     {
         $this->service->deleteProduct($id);
         return redirect()->route('products.index');
+    }
+
+    public function admin()
+    {
+        $user = Auth::user();
+
+        // Optionally check if user is admin, redirect if not
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        // Get all products and orders, eager load relationships if needed
+        $products = Product::all(); // or with relations: Product::with('category')->get();
+        $orders = Order::with('items')->get(); // assuming orders have items relationship
+
+        // Pass data to Inertia
+        return Inertia::render('admin/AdminDashboard', [
+            'user' => $user,
+            'products' => $products,
+            'orders' => $orders,
+        ]);
     }
 }

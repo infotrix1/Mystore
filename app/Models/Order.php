@@ -17,4 +17,5 @@ class Order extends Authenticatable
     {
         return $this->belongsToMany(Product::class)->withPivot('quantity');
     }
+
 }

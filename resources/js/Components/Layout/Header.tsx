@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import {
   ShoppingCart,
   User,
@@ -9,25 +9,25 @@ import {
   LogOut,
   Settings,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, logout, hasRole, loading } = useAuth();
   const { totalItems } = useCart();
+  const { auth } = usePage().props as { auth: { user: any } };
+  const user = auth?.user;
+  const isAuthenticated = !!user;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  console.log(user);
-
-  const handleLogout = async () => {
-    await logout();
-    setIsUserMenuOpen(false);
-    router.visit('/');
+  const hasRole = (role: string) => {
+    return user?.role === role;
   };
 
-  if (loading) return null; // Optionally show a spinner or header skeleton
+  const handleLogout = async () => {
+    router.post('/logout');
+    setIsUserMenuOpen(false);
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">

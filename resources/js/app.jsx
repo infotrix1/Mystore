@@ -6,10 +6,8 @@ import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
-import { AuthProvider } from './contexts/AuthContext';  // Make sure the path is correct
+import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
-import Header from './components/Layout/Header';
-import Footer from './components/Layout/Footer';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -28,11 +26,9 @@ createInertiaApp({
         <AuthProvider>
           <CartProvider>
             <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Header />
                 <main className="flex-1">
                 <App {...props} />
                 </main>
-                <Footer />
             </div>
           </CartProvider>
         </AuthProvider>

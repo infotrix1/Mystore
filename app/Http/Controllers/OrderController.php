@@ -15,6 +15,12 @@ class OrderController extends Controller
         $this->service = $service;
     }
 
+    public function index()
+    {
+        $order = $this->service->getAll();
+        return redirect()->route('orders.show', $order->id);
+    }
+
     public function store(OrderRequest $request)
     {
         $order = $this->service->createOrder($request->validated());
@@ -25,6 +31,12 @@ class OrderController extends Controller
     {
         $order = $this->service->getOrderById($id);
         return Inertia::render('Orders/Show', compact('order'));
+    }
+
+    public function OrderGetById()
+    {
+        $order = $this->service->OrderGetById();
+        return Inertia::render('Orders', compact('order'));
     }
 
     public function update(OrderRequest $request, $id)

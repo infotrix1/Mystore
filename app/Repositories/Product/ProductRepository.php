@@ -1,5 +1,7 @@
 <?php
 
+<?php
+
 namespace App\Repositories\Product;
 
 use App\Models\Product;
@@ -8,37 +10,37 @@ class ProductRepository implements ProductRepositoryInterface
 {
     protected $model;
 
-    public function __construct(Product $plan)
+    public function __construct(Product $product)
     {
-        $this->model = $plan;
+        $this->model = $product;
     }
 
     public function all()
     {
-        return $this->model->all();
-        // return Product::with('category')->paginate(10);
+        return $this->model->with('category')->get();
     }
 
     public function find($id)
     {
-        return $this->model->findOrFail($id);
+        return $this->model->with('category')->findOrFail($id);
     }
 
     public function create(array $data)
     {
-        $product  = $this->model->create($data);
+        return $this->model->create($data);
     }
 
     public function update($id, array $data)
     {
-        $product  = $this->find($id);
-        $product ->update($data);
+        $product = $this->find($id);
+        $product->update($data);
         return $product;
     }
 
     public function delete($id)
     {
-        $product  = $this->find($id);
-        $product->delete();
+        $product = $this->find($id);
+        return $product->delete();
     }
 }
+

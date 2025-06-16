@@ -1,7 +1,8 @@
 import React from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { Link } from '@inertiajs/react'; // ✅ Inertia Link
+import { Link } from '@inertiajs/react';
+import Layout from '../Components/Layout/DesignLayout';
 
 const Cart: React.FC = () => {
   const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
@@ -140,5 +141,5 @@ const Cart: React.FC = () => {
     </div>
   );
 };
-
+Cart.layout = page => <Layout>{page}</Layout>;
 export default Cart;

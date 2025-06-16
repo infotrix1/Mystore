@@ -13,6 +13,11 @@ class OrderService
         $this->repository = $repository;
     }
 
+    public function getAll()
+    {
+        return $this->repository->all();
+    }
+
     public function createOrder(array $data)
     {
         return $this->repository->create($data);
@@ -21,6 +26,11 @@ class OrderService
     public function getOrderById($id)
     {
         return $this->repository->find($id);
+    }
+
+    public function OrderGetById()
+    {
+        return $this->repository->getOrders();
     }
 
     public function updateOrder($id, array $data)

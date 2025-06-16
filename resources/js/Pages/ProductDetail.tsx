@@ -12,7 +12,8 @@ import {
   Minus,
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { Product } from '../types'; // Adjust path if needed
+import { Product } from '../types';
+import Layout from '../Components/Layout/DesignLayout';
 
 const ProductDetail: React.FC = () => {
   const { product } = usePage().props as { product: Product };
@@ -169,5 +170,5 @@ const ProductDetail: React.FC = () => {
     </div>
   );
 };
-
+ProductDetail.layout = page => <Layout>{page}</Layout>;
 export default ProductDetail;

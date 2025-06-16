@@ -1,24 +1,51 @@
 import React, { useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { Package, Users, ShoppingCart, TrendingUp, Eye, Edit, Trash2, Plus } from 'lucide-react';
-import { mockProducts, mockOrders } from '../../data/mockData';
-import { useAuth } from '../../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+
+interface User {
+  role: string;
+}
+
+interface Product {
+  id: number;
+  image: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
+interface OrderItem {
+  // define as needed
+}
+
+interface Order {
+  id: number;
+  created_at: string;
+  user_id: number;
+  items: OrderItem[];
+  status: string;
+  total: number;
+}
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { props } = usePage();
+  const { user, products = [], orders = [] } = props as {
+    user: User;
+    products: Product[];
+    orders: Order[];
+  };
+
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products'>('overview');
 
-  // Redirect if not admin
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
+  // Calculate stats
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalOrders = orders.length;
+  const totalProducts = products.length;
+  const totalCustomers = 156; // You can fetch from backend if you want
 
-  const totalRevenue = mockOrders.reduce((sum, order) => sum + order.total, 0);
-  const totalOrders = mockOrders.length;
-  const totalProducts = mockProducts.length;
-  const totalCustomers = 156; // Mock number
-
-  const recentOrders = mockOrders.slice(0, 5);
+  const recentOrders = orders.slice(0, 5);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -39,39 +66,37 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
         <p className="text-gray-600">Manage your store and monitor performance</p>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Tabs */}
       <div className="border-b border-gray-200 mb-8">
         <nav className="-mb-px flex space-x-8">
-          {[
-            { id: 'overview', name: 'Overview' },
-            { id: 'orders', name: 'Orders' },
-            { id: 'products', name: 'Products' }
-          ].map((tab) => (
+          {['overview', 'orders', 'products'].map((tab) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
+                activeTab === tab
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {tab.name}
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </nav>
       </div>
 
-      {/* Overview Tab */}
+      {/* Overview */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Revenue */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -88,6 +113,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Orders */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -104,6 +130,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Products */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -120,6 +147,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Customers */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -137,7 +165,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Recent Orders */}
+          {/* Recent Orders Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
@@ -169,14 +197,12 @@ const AdminDashboard: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {recentOrders.map((order) => (
                     <tr key={order.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {order.id}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(order.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        Customer #{order.userId}
+                        Customer #{order.user_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -188,10 +214,10 @@ const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button className="text-blue-600 hover:text-blue-900" title="View">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-green-600 hover:text-green-900">
+                          <button className="text-green-600 hover:text-green-900" title="Edit">
                             <Edit className="w-4 h-4" />
                           </button>
                         </div>
@@ -208,19 +234,15 @@ const AdminDashboard: React.FC = () => {
       {/* Orders Tab */}
       {activeTab === 'orders' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">All Orders</h2>
-              <div className="flex space-x-3">
-                <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option>All Status</option>
-                  <option>Pending</option>
-                  <option>Processing</option>
-                  <option>Shipped</option>
-                  <option>Delivered</option>
-                </select>
-              </div>
-            </div>
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">All Orders</h2>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+            </select>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -236,9 +258,6 @@ const AdminDashboard: React.FC = () => {
                     Customer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Items
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -250,19 +269,14 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {mockOrders.map((order) => (
+                {orders.map((order) => (
                   <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {order.id}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(order.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      Customer #{order.userId}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.items.length} items
+                      Customer #{order.user_id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -274,10 +288,10 @@ const AdminDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button className="text-blue-600 hover:text-blue-900" title="View">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900">
+                        <button className="text-green-600 hover:text-green-900" title="Edit">
                           <Edit className="w-4 h-4" />
                         </button>
                       </div>
@@ -293,76 +307,45 @@ const AdminDashboard: React.FC = () => {
       {/* Products Tab */}
       {activeTab === 'products' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Products</h2>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </button>
-            </div>
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">Products</h2>
+            <button className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" /> Add Product
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rating
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {mockProducts.map((product) => (
+                {products.map((product) => (
                   <tr key={product.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover mr-3" />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-500">ID: {product.id}</div>
-                        </div>
-                      </div>
+                      <img src={product.image} alt={product.name} className="h-10 w-10 rounded object-cover" />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${product.price}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        product.stock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.stock ? 'In Stock' : 'Out of Stock'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.rating} ({product.reviews})
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.price}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button className="text-blue-600 hover:text-blue-900" title="View">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900">
+                        <button className="text-green-600 hover:text-green-900" title="Edit">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button className="text-red-600 hover:text-red-900" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

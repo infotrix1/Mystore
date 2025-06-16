@@ -2,6 +2,7 @@ import React from 'react';
 import { Package, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 import { mockOrders } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
+import Layout from '../Components/Layout/DesignLayout';
 
 const Orders: React.FC = () => {
   const { user } = useAuth();
@@ -138,5 +139,5 @@ const Orders: React.FC = () => {
     </div>
   );
 };
-
+Orders.layout = page => <Layout>{page}</Layout>;
 export default Orders;

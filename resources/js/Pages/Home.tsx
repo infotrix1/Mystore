@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, Shield, Truck, RefreshCw, Star } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../Components/ProductCard';
 import { mockProducts } from '../data/mockData';
+import Layout from '../Components/Layout/DesignLayout';
 
 const Home: React.FC = () => {
   const featuredProducts = mockProducts.slice(0, 3);
@@ -160,5 +161,5 @@ const Home: React.FC = () => {
         </div>
     );
 }
-
+Home.layout = page => <Layout>{page}</Layout>;
 export default Home;

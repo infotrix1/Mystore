@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Filter, Grid, List, Search } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../Components/ProductCard';
 import { Product } from '../types';
+import Layout from '../Components/Layout/DesignLayout';
 
 const Products: React.FC = () => {
   const { products } = usePage().props as {
@@ -155,5 +156,5 @@ const Products: React.FC = () => {
     </div>
   );
 };
-
+Products.layout = page => <Layout>{page}</Layout>;
 export default Products;
