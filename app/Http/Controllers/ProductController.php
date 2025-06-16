@@ -5,6 +5,8 @@ use Inertia\Inertia;
 use App\Services\ProductService;
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\Category;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ProductRequest;
 
@@ -62,16 +64,18 @@ class ProductController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Get all products and orders, eager load relationships if needed
-        $products = Product::all(); // or with relations: Product::with('category')->get();
-        $orders = Order::with('items.product')->get(); // assuming orders have items relationship
+        $products = Product::all();
+        $categories = Category::all();
+        $orders = $orders = Order::with(['user', 'items.product'])->get();
+        $users = User::all();
 
         // dd($orders);
-        // Pass data to Inertia
         return Inertia::render('admin/AdminDashboard', [
             'user' => $user,
             'products' => $products,
             'orders' => $orders,
+            'categories' => $categories,
+            'users' => $users,
         ]);
     }
 }

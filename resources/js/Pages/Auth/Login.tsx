@@ -46,13 +46,18 @@ const Login: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Credentials:</h3>
+            <div className="text-xs text-blue-700 space-y-1">
+                <p><strong>Admin:</strong> admin@admin.com / password</p>
+              <p><strong>User:</strong> user1@example.com / password</p>
+            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Top-level auth error */}
             {errors.email && typeof errors.email === 'string' && (
               <div className="text-red-600 text-sm mb-4 text-center">{errors.email}</div>
             )}
 
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -75,7 +80,6 @@ const Login: React.FC = () => {
               {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -105,7 +109,6 @@ const Login: React.FC = () => {
               {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
             </div>
 
-            {/* Remember Me + Forgot Password */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -128,7 +131,6 @@ const Login: React.FC = () => {
               </Link>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -145,7 +147,6 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Signup Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}

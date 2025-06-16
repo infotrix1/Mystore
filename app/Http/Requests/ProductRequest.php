@@ -23,7 +23,7 @@ class ProductRequest extends FormRequest
     {
          return [
             'name' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
+            'category_id' => ['required', 'exists:categories,id'], // <-- THIS LINE
             'price' => ['required', 'numeric', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'image' => ['required', 'url'],

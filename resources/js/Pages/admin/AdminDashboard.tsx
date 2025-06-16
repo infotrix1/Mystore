@@ -3,6 +3,7 @@ import { usePage,router } from '@inertiajs/react';
 import { Package, Users, ShoppingCart, TrendingUp, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Header from '../../Components/Layout/Header';
 
 interface User {
   role: string;
@@ -12,7 +13,6 @@ interface Product {
   id: number;
   image: string;
   name: string;
-  sku: string;
   category: string;
   price: number;
   stock: number;
@@ -33,15 +33,29 @@ interface Order {
   total: number;
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface UserAccount {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const { props } = usePage();
-  const { user, products = [], orders = [] } = props as {
-    user: User;
+    const { users = [], products = [], orders = [], categories = [] } = props as {
+    user: UserAccount[];
     products: Product[];
     orders: Order[];
-  };
+    categories: Category[];
+    };
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'users'>('overview');
   const [isViewOrderModalOpen, setIsViewOrderModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
@@ -52,8 +66,7 @@ const AdminDashboard: React.FC = () => {
   // FIX 1: Add missing productForm state
   const [productForm, setProductForm] = useState({
     name: '',
-    sku: '',
-    category: '',
+    category_id: '',
     price: 0,
     stock: 0,
     image: ''
@@ -63,7 +76,7 @@ const AdminDashboard: React.FC = () => {
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
   const totalProducts = products.length;
-  const totalCustomers = 156;
+  const totalCustomers = users.length;
 
   const recentOrders = orders.slice(0, 5);
 
@@ -93,8 +106,7 @@ const AdminDashboard: React.FC = () => {
     setSelectedProduct(product);
     setProductForm({
       name: product.name,
-      sku: product.sku,
-      category: product.category,
+      category_id: product.category_id,
       price: product.price,
       stock: product.stock,
       image: product.image
@@ -111,8 +123,8 @@ const AdminDashboard: React.FC = () => {
   const handleProductFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProductForm(prev => ({
-      ...prev,
-      [name]: name === 'price' || name === 'stock' ? Number(value) : value
+    ...prev,
+    [name]: ['price', 'stock', 'category_id'].includes(name) ? Number(value) : value
     }));
   };
 
@@ -123,23 +135,23 @@ const AdminDashboard: React.FC = () => {
         setIsAddProductModalOpen(false);
         setProductForm({
             name: '',
-            sku: '',
-            category: '',
+            category_id: '',
             price: 0,
             stock: 0,
             image: ''
         });
         },
-        onError: () => {
-        toast.error('Failed to add product.');
-        }
+          onError: (errors) => {
+            console.error(errors);
+            toast.error('Failed to add product.');
+        },
     });
     };
 
 const handleUpdateProduct = () => {
   if (!selectedProduct) return;
 
-  router.put(`/products/${selectedProduct.id}`, productForm, {
+  router.delete(`/products/${selectedProduct.id}`, productForm, {
     onSuccess: () => {
       toast.success('Product updated successfully!');
       setIsEditProductModalOpen(false);
@@ -153,7 +165,7 @@ const handleUpdateProduct = () => {
 const handleDeleteProduct = () => {
   if (!selectedProduct) return;
 
-  router.delete(`/admin/products/${selectedProduct.id}`, {
+  router.delete(`/products/${selectedProduct.id}`, {
     onSuccess: () => {
       toast.success(`"${selectedProduct.name}" deleted successfully!`);
       setIsDeleteProductModalOpen(false);
@@ -164,8 +176,13 @@ const handleDeleteProduct = () => {
   });
 };
 
+const categoryMap = new Map(categories.map(c => [c.id, c.name]));
+
+
 
   return (
+     <>
+    <Header />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ToastContainer />
 
@@ -178,7 +195,7 @@ const handleDeleteProduct = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-8">
         <nav className="-mb-px flex space-x-8">
-          {['overview', 'orders', 'products'].map((tab) => (
+          {['overview', 'users', 'orders', 'products'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -305,7 +322,7 @@ const handleDeleteProduct = () => {
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        Customer #{order.user_id}
+                        {order.user.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -380,7 +397,7 @@ const handleDeleteProduct = () => {
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      Customer #{order.user_id}
+                      {order.user.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -409,6 +426,42 @@ const handleDeleteProduct = () => {
         </div>
       )}
 
+      {/* User Tab */}
+      {activeTab === 'users' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-6">
+            <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">All Users</h2>
+            </div>
+            <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                    <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                        {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+            </div>
+        </div>
+        )}
+
+
       {/* Products Tab */}
 {activeTab === 'products' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -420,8 +473,7 @@ const handleDeleteProduct = () => {
                 setIsAddProductModalOpen(true);
                 setProductForm({
                   name: '',
-                  sku: '',
-                  category: '',
+                  category_id: '',
                   price: 0,
                   stock: 0,
                   image: ''
@@ -438,7 +490,6 @@ const handleDeleteProduct = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
@@ -452,8 +503,7 @@ const handleDeleteProduct = () => {
                       <img src={product.image} alt={product.name} className="h-10 w-10 rounded object-cover" />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{categoryMap.get(product.category_id) || 'Unknown'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">₦{product.price}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -496,8 +546,8 @@ const handleDeleteProduct = () => {
                   <p className="font-medium">{new Date(selectedOrder.created_at).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600">Customer ID</p>
-                  <p className="font-medium">#{selectedOrder.user_id}</p>
+                  <p className="text-gray-600">Customer Name</p>
+                  <p className="font-medium">{selectedOrder.user.name}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Status</p>
@@ -527,7 +577,7 @@ const handleDeleteProduct = () => {
                       {selectedOrder.items.map((item, index) => (
                         <tr key={index}>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            Product #{item.product_id}
+                            {item.product.name}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                             ₦{Number(item.price).toFixed(2)}
@@ -580,28 +630,21 @@ const handleDeleteProduct = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                <input
-                  type="text"
-                  name="sku"
-                  value={productForm.sku}
-                  onChange={handleProductFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter SKU"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <input
-                  type="text"
-                  name="category"
-                  value={productForm.category}
-                  onChange={handleProductFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter category"
-                />
-              </div>
+                <select
+                    name="category_id"
+                    value={productForm.category_id}
+                    onChange={handleProductFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                        {category.name}
+                    </option>
+                    ))}
+                </select>
+                </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -699,7 +742,7 @@ const handleDeleteProduct = () => {
               </div>
             )}
     </div>
+     </>
   );
 };
-
 export default AdminDashboard;

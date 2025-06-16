@@ -46,12 +46,6 @@ const Header: React.FC = () => {
             <Link href="/products" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Products
             </Link>
-            <Link href="/categories" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Categories
-            </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              About
-            </Link>
           </nav>
 
           {/* Search Bar */}
@@ -94,14 +88,6 @@ const Header: React.FC = () => {
 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    <Link
-                      href="/profile"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
                     <Link
                       href="/orders"
                       className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
