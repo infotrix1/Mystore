@@ -1,11 +1,28 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Shield, Truck, RefreshCw, Star } from 'lucide-react';
 import ProductCard from '../Components/ProductCard';
-import { mockProducts } from '../data/mockData';
 import Layout from '../Components/Layout/DesignLayout';
+import { PageProps, Product } from '@/types';
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: Category;
+}
+
+export interface PageProps {
+  product: Product[];
+}
 
 const Home: React.FC = () => {
-  const featuredProducts = mockProducts.slice(0, 3);
+  const { product } = usePage<PageProps>().props;
 
     return (
         <div className="min-h-screen">
@@ -96,23 +113,23 @@ const Home: React.FC = () => {
                 </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {featuredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-                </div>
 
-                <div className="text-center mt-12">
-                <Link
-                    href="/products"
-                    className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                >
-                    View All Products
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {product.map((p: Product) => (
+                        <ProductCard key={p.id} product={p} />
+                    ))}
+                    </div>
+
+                    <div className="text-center mt-12">
+                    <Link
+                        href="/products"
+                        className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    >
+                        View All Products <ArrowRight className="ml-2 w-5 h-5" />
+                    </Link>
+                    </div>
                 </div>
-            </div>
-            </section>
+                </section>
 
             {/* Testimonials */}
             <section className="py-16 bg-white">
