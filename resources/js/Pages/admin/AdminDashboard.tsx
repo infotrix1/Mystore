@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage,router } from '@inertiajs/react';
 import { Package, Users, ShoppingCart, TrendingUp, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface User {
   role: string;
@@ -17,7 +19,9 @@ interface Product {
 }
 
 interface OrderItem {
-  // define as needed
+  product_id: number;
+  quantity: number;
+  price: number;
 }
 
 interface Order {
@@ -38,12 +42,28 @@ const AdminDashboard: React.FC = () => {
   };
 
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products'>('overview');
+  const [isViewOrderModalOpen, setIsViewOrderModalOpen] = useState(false);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // FIX 1: Add missing productForm state
+  const [productForm, setProductForm] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    price: 0,
+    stock: 0,
+    image: ''
+  });
 
   // Calculate stats
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
   const totalProducts = products.length;
-  const totalCustomers = 156; // You can fetch from backend if you want
+  const totalCustomers = 156;
 
   const recentOrders = orders.slice(0, 5);
 
@@ -64,8 +84,91 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const openViewOrderModal = (order: Order) => {
+    setSelectedOrder(order);
+    setIsViewOrderModalOpen(true);
+  };
+
+  const openEditProductModal = (product: Product) => {
+    setSelectedProduct(product);
+    setProductForm({
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+      image: product.image
+    });
+    setIsEditProductModalOpen(true);
+  };
+
+  const openDeleteProductModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDeleteProductModalOpen(true);
+  };
+
+  // Form handlers
+  const handleProductFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProductForm(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'stock' ? Number(value) : value
+    }));
+  };
+
+    const handleAddProduct = () => {
+    router.post('/products', productForm, {
+        onSuccess: () => {
+        toast.success('Product added successfully!');
+        setIsAddProductModalOpen(false);
+        setProductForm({
+            name: '',
+            sku: '',
+            category: '',
+            price: 0,
+            stock: 0,
+            image: ''
+        });
+        },
+        onError: () => {
+        toast.error('Failed to add product.');
+        }
+    });
+    };
+
+const handleUpdateProduct = () => {
+  if (!selectedProduct) return;
+
+  router.put(`/products/${selectedProduct.id}`, productForm, {
+    onSuccess: () => {
+      toast.success('Product updated successfully!');
+      setIsEditProductModalOpen(false);
+    },
+    onError: () => {
+      toast.error('Failed to update product.');
+    }
+  });
+};
+
+const handleDeleteProduct = () => {
+  if (!selectedProduct) return;
+
+  router.delete(`/admin/products/${selectedProduct.id}`, {
+    onSuccess: () => {
+      toast.success(`"${selectedProduct.name}" deleted successfully!`);
+      setIsDeleteProductModalOpen(false);
+    },
+    onError: () => {
+      toast.error('Failed to delete product.');
+    }
+  });
+};
+
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ToastContainer />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
@@ -101,7 +204,7 @@ const AdminDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Revenue</p>
-                  <p className="text-3xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-3xl font-bold text-gray-900">₦{totalRevenue.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-green-600" />
@@ -210,16 +313,17 @@ const AdminDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${order.total.toFixed(2)}
+                        ₦{order.total.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900" title="View">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button className="text-green-600 hover:text-green-900" title="Edit">
-                            <Edit className="w-4 h-4" />
-                          </button>
+                          <button
+                                                      onClick={() => openViewOrderModal(order)}
+                                                      className="text-blue-600 hover:text-blue-900"
+                                                      title="View"
+                                                    >
+                                                      <Eye className="w-4 h-4" />
+                                                    </button>
                         </div>
                       </td>
                     </tr>
@@ -284,16 +388,17 @@ const AdminDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${order.total.toFixed(2)}
+                      ₦{order.total.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900" title="View">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="text-green-600 hover:text-green-900" title="Edit">
-                          <Edit className="w-4 h-4" />
-                        </button>
+                        <button
+                                                  onClick={() => openViewOrderModal(order)}
+                                                  className="text-blue-600 hover:text-blue-900"
+                                                  title="View"
+                                                >
+                                                  <Eye className="w-4 h-4" />
+                                                </button>
                       </div>
                     </td>
                   </tr>
@@ -305,11 +410,25 @@ const AdminDashboard: React.FC = () => {
       )}
 
       {/* Products Tab */}
-      {activeTab === 'products' && (
+{activeTab === 'products' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Products</h2>
-            <button className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700">
+            {/* FIX 2: Add onClick handler for Add Product button */}
+            <button
+              onClick={() => {
+                setIsAddProductModalOpen(true);
+                setProductForm({
+                  name: '',
+                  sku: '',
+                  category: '',
+                  price: 0,
+                  stock: 0,
+                  image: ''
+                });
+              }}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700"
+            >
               <Plus className="w-4 h-4 mr-2" /> Add Product
             </button>
           </div>
@@ -335,18 +454,24 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.price}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">₦{product.price}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900" title="View">
-                          <Eye className="w-4 h-4" />
+                        {/* FIX 3: Remove broken View button for products */}
+                        <button
+                            onClick={() => openEditProductModal(product)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Edit"
+                        >
+                            <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900" title="Edit">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900" title="Delete">
-                          <Trash2 className="w-4 h-4" />
+                        <button
+                            onClick={() => openDeleteProductModal(product)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                        >
+                            <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -357,6 +482,222 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+      {/* View Order Modal */}
+      {isViewOrderModalOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <h3 className="text-xl font-bold">Order #{selectedOrder.id}</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600">Date</p>
+                  <p className="font-medium">{new Date(selectedOrder.created_at).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Customer ID</p>
+                  <p className="font-medium">#{selectedOrder.user_id}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Status</p>
+                  <span className={`inline-flex px-2 py-1 rounded-full text-sm ${getStatusColor(selectedOrder.status)}`}>
+                    {selectedOrder.status}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-gray-600">Total</p>
+                  <p className="font-medium">₦{selectedOrder.total.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="text-lg font-semibold mb-3">Order Items</h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {selectedOrder.items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            Product #{item.product_id}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            ₦{Number(item.price).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {item.quantity}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                            ₦{(item.price * item.quantity).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end">
+              <button
+                onClick={() => setIsViewOrderModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition duration-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+       {/* Add/Edit Product Modal */}
+      {(isAddProductModalOpen || isEditProductModalOpen) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6 border-b">
+              <h3 className="text-xl font-bold">
+                {isAddProductModalOpen ? 'Add New Product' : 'Edit Product'}
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={productForm.name}
+                  onChange={handleProductFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter product name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                <input
+                  type="text"
+                  name="sku"
+                  value={productForm.sku}
+                  onChange={handleProductFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter SKU"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input
+                  type="text"
+                  name="category"
+                  value={productForm.category}
+                  onChange={handleProductFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter category"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (₦)</label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={productForm.price}
+                    onChange={handleProductFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <input
+                    type="number"
+                    name="stock"
+                    value={productForm.stock}
+                    onChange={handleProductFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                <input
+                  type="text"
+                  name="image"
+                  value={productForm.image}
+                  onChange={handleProductFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsAddProductModalOpen(false);
+                  setIsEditProductModalOpen(false);
+                }}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={isAddProductModalOpen ? handleAddProduct : handleUpdateProduct}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+              >
+                {isAddProductModalOpen ? 'Add Product' : 'Update Product'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+            {isDeleteProductModalOpen && selectedProduct && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-lg w-full max-w-md">
+                  <div className="p-6 border-b">
+                    <h3 className="text-xl font-bold">Confirm Deletion</h3>
+                  </div>
+                  <div className="p-6">
+                    <p className="mb-4">
+                      Are you sure you want to delete <strong className="text-red-600">"{selectedProduct.name}"</strong>?
+                      This action cannot be undone.
+                    </p>
+                    <div className="flex items-center p-4 bg-red-50 rounded-lg">
+                      <Trash2 className="w-5 h-5 text-red-600 mr-3" />
+                      <p className="text-red-700">All product data will be permanently removed</p>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t flex justify-end space-x-3">
+                    <button
+                      onClick={() => setIsDeleteProductModalOpen(false)}
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteProduct}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200"
+                    >
+                      Delete Product
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 };

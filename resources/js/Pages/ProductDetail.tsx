@@ -16,10 +16,15 @@ import { Product } from '../types';
 import Layout from '../Components/Layout/DesignLayout';
 
 const ProductDetail: React.FC = () => {
-  const { product } = usePage().props as { product: Product };
+  const { product } = usePage().props as {
+    product: Product;
+  };
   const { addToCart } = useCart();
+
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  const productImages = product.images?.length ? product.images : [product.image];
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -27,9 +32,6 @@ const ProductDetail: React.FC = () => {
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1);
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
-
-  // Use real image array if your product has multiple images
-  const productImages = [product.image, product.image, product.image];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -62,12 +64,11 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Product Info */}
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
-                {product.category}
+                {product.category?.name || 'Uncategorized'}
               </span>
               <div className="flex items-center space-x-2">
                 <button className="p-2 text-gray-400 hover:text-red-500 transition-colors">
@@ -96,7 +97,9 @@ const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-4xl font-bold text-gray-900 mb-6">₦{product.price}</div>
+            <div className="text-4xl font-bold text-gray-900 mb-6">
+              ₦{product.price.toLocaleString()}
+            </div>
           </div>
 
           <div>
@@ -104,17 +107,19 @@ const ProductDetail: React.FC = () => {
             <p className="text-gray-600 leading-relaxed">{product.description}</p>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
-            <ul className="space-y-2">
-              {product.features?.map((feature, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <span className="text-gray-600">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {product.features?.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
+              <ul className="space-y-2">
+                {product.features.map((feature, index) => (
+                  <li key={index} className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span className="text-gray-600">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
@@ -170,5 +175,6 @@ const ProductDetail: React.FC = () => {
     </div>
   );
 };
-ProductDetail.layout = page => <Layout>{page}</Layout>;
+
+ProductDetail.layout = (page) => <Layout>{page}</Layout>;
 export default ProductDetail;

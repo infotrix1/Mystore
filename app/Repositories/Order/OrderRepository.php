@@ -20,7 +20,10 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getOrders()
     {
-        return $this->model::with('products')->where('user_id', 1)->get();
+        return $this->model::with('items.product')
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
     }
 
     public function find($id)
@@ -30,7 +33,22 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function create(array $data)
     {
-        $order  = $this->model->create($data);
+        // dd($data);
+        $order = $this->model->create([
+            'user_id' => auth()->id(),
+            'total' => $data['total'],
+            'status' => 'pending',
+        ]);
+
+        foreach ($data['items'] as $item) {
+            $order->items()->create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ]);
+        }
+
+        return $order;
     }
 
 

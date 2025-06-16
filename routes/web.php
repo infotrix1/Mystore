@@ -26,7 +26,6 @@ Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('pr
 
 Route::get('/orders', [OrderController::class, 'OrderGetById'])->name('orders.OrderGetById');
 Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
-Route::post('/checkout', [OrderController::class, 'store'])->name('orders.store');
 Route::put('/orders/{id}', [OrderController::class, 'update'])->name('orders.update');
 Route::delete('/orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
@@ -36,6 +35,7 @@ Route::get('/admin', [ProductController::class, 'admin'])->name('admin.dashboard
 
 
 Route::middleware('auth')->group(function () {
+    Route::post('/checkout', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

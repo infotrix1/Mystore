@@ -42,7 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
-              {product.category}
+              {product.category.name}
             </span>
             <div className="flex items-center space-x-1">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -62,18 +62,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
             <span className="text-2xl font-bold text-gray-900">
-                ₦{product.price}
+              ₦{product.price}
             </span>
 
             <button
-                onClick={handleAddToCart}
-                disabled={!product.stock}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed w-full sm:w-auto"
+              onClick={handleAddToCart}
+              disabled={!product.stock}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed w-full sm:w-auto"
             >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="font-medium">Add to Cart</span>
+              <ShoppingCart className="w-4 h-4" />
+              <span className="font-medium">Add to Cart</span>
             </button>
-            </div>
+          </div>
         </div>
       </Link>
     </div>

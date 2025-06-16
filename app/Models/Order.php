@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-class Order extends Authenticatable
+class Order extends Model
 {
-    protected $fillable = ['user_id', 'total_amount', 'status'];
+    protected $fillable = ['user_id', 'total', 'status'];
 
     public function user()
     {
@@ -15,7 +15,16 @@ class Order extends Authenticatable
 
     public function products()
     {
-        return $this->belongsToMany(Product::class)->withPivot('quantity');
+        return $this->hasManyThrough(Product::class, OrderItem::class, 'order_id', 'id', 'id', 'product_id');
     }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    protected $casts = [
+    'total' => 'float',
+    ];
 
 }

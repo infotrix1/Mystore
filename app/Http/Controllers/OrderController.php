@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Services\OrderService;
+use App\Http\Requests\OrderRequest;
 
 
 
@@ -35,8 +36,9 @@ class OrderController extends Controller
 
     public function OrderGetById()
     {
-        $order = $this->service->OrderGetById();
-        return Inertia::render('Orders', compact('order'));
+        $orders = $this->service->OrderGetById();
+        // dd($order);
+        return Inertia::render('Orders', ['orders' => $orders]);
     }
 
     public function update(OrderRequest $request, $id)

@@ -1,11 +1,31 @@
 import React from 'react';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import Layout from '../Components/Layout/DesignLayout';
 
 const Cart: React.FC = () => {
-  const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
+  const { items, updateQuantity, removeFromCart, totalPrice, totalItems, clearCart } = useCart();
+
+  const handleCheckout = () => {
+    const orderPayload = {
+      total: totalPrice.toFixed(2),
+      items: items.map((item) => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price,
+      })),
+    };
+
+    router.post('/checkout', orderPayload, {
+      onSuccess: () => {
+        clearCart();
+      },
+      onError: (errors) => {
+        console.error('Checkout error:', errors);
+      },
+    });
+  };
 
   if (items.length === 0) {
     return (
@@ -38,7 +58,6 @@ const Cart: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
         <div className="lg:col-span-2 space-y-6">
           {items.map((item) => (
             <div
@@ -95,7 +114,6 @@ const Cart: React.FC = () => {
           ))}
         </div>
 
-        {/* Order Summary */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
@@ -122,12 +140,12 @@ const Cart: React.FC = () => {
               </div>
             </div>
 
-            <Link
-              href="/checkout"
+            <button
+              onClick={handleCheckout}
               className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl hover:bg-blue-700 transition-colors font-semibold text-center block"
             >
               Proceed to Checkout
-            </Link>
+            </button>
 
             <Link
               href="/products"
@@ -141,5 +159,6 @@ const Cart: React.FC = () => {
     </div>
   );
 };
-Cart.layout = page => <Layout>{page}</Layout>;
+
+Cart.layout = (page) => <Layout>{page}</Layout>;
 export default Cart;

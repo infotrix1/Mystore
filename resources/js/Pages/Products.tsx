@@ -15,7 +15,11 @@ const Products: React.FC = () => {
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.category)))];
+  const uniqueCategories = Array.from(
+    new Map(products.map(p => [p.category.id, p.category])).values()
+  );
+
+  const categories = [{ id: 'all', name: 'All Categories' }, ...uniqueCategories];
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products.filter(product => {
@@ -23,7 +27,8 @@ const Products: React.FC = () => {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+      const matchesCategory =
+        selectedCategory === 'all' || product.category.id.toString() === selectedCategory;
 
       return matchesSearch && matchesCategory;
     });
@@ -47,13 +52,11 @@ const Products: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Products</h1>
         <p className="text-gray-600">Discover our complete collection of premium products</p>
       </div>
 
-      {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
@@ -70,20 +73,18 @@ const Products: React.FC = () => {
             </div>
           </div>
 
-          {/* Category Filter */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {categories.map(category => (
-              <option key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
+              <option key={category.id} value={category.id}>
+                {category.name}
               </option>
             ))}
           </select>
 
-          {/* Sort */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -95,7 +96,6 @@ const Products: React.FC = () => {
             <option value="rating">Highest Rated</option>
           </select>
 
-          {/* View Mode Toggle */}
           <div className="flex border border-gray-300 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
@@ -113,14 +113,12 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* Product Count */}
       <div className="mb-6">
         <p className="text-gray-600">
           Showing {filteredAndSortedProducts.length} of {products.length} products
         </p>
       </div>
 
-      {/* Product Grid/List */}
       {filteredAndSortedProducts.length > 0 ? (
         <div
           className={`grid gap-6 ${
@@ -156,5 +154,6 @@ const Products: React.FC = () => {
     </div>
   );
 };
-Products.layout = page => <Layout>{page}</Layout>;
+
+Products.layout = (page) => <Layout>{page}</Layout>;
 export default Products;

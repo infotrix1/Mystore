@@ -6,6 +6,7 @@ use App\Services\ProductService;
 use App\Models\Product;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\ProductRequest;
 
 class ProductController extends Controller
 {
@@ -63,8 +64,9 @@ class ProductController extends Controller
 
         // Get all products and orders, eager load relationships if needed
         $products = Product::all(); // or with relations: Product::with('category')->get();
-        $orders = Order::with('items')->get(); // assuming orders have items relationship
+        $orders = Order::with('items.product')->get(); // assuming orders have items relationship
 
+        // dd($orders);
         // Pass data to Inertia
         return Inertia::render('admin/AdminDashboard', [
             'user' => $user,
